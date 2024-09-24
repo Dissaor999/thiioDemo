@@ -1,0 +1,59 @@
+version: '3.8'
+services:
+  #laravel
+  laravel:
+    build:
+      context: ./laravel
+    container_name: laravel-app
+    env_file: ./laravel/.env
+    volumes:
+      - ./laravel:/var/www/html
+    networks:
+      - app-network
+    depends_on:
+      - mysql
+    environment:
+      - DB_HOST=mysql
+    command: [ "sh", "start.sh" ]
+  #Nginx
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-server
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./laravel:/var/www/html
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+    depends_on:
+      - laravel
+  #Mysql
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: secretroot
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: demouser
+      MYSQL_PASSWORD: demosecret
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app-network
+  # Optional: Random HTTP Docker Image
+  random-http:
+    image: hashicorp/http-echo
+    command: [ "-This is a Demo text for a Thiio Recruitment Team ¡ Hello Team Have a Great Day !" ]
+    networks:
+      - app-network
+    profiles:
+      - random
+
+volumes:
+  mysql-data:
+
+
+networks:
+  app-network:
+    driver: bridge
